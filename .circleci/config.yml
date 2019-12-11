@@ -1,0 +1,21 @@
+version: 2
+jobs:
+  deploy:
+    docker:
+      - image: heroku/buildpacks
+    steps:
+      - checkout
+      - run:
+          name: heroku check
+          command: |
+            heroku
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - deploy:
+          filters:
+            branches:
+              only: master
+
