@@ -1,6 +1,6 @@
 # count2
 
-appname: mizucoffee-count2
+appname: mzcf-count2
 
 ## build
 
