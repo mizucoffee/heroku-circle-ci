@@ -6,9 +6,35 @@ jobs:
     steps:
       - checkout
       - run:
-          name: heroku check
+          name: Log in to Heroku
           command: |
-            heroku
+            cat <<EOF > ~/.netrc
+            machine api.heroku.com
+              login $HEROKU_EMAIL
+              password $HEROKU_API_KEY
+            machine git.heroku.com
+              login $HEROKU_EMAIL
+              password $HEROKU_API_KEY
+            EOF
+      - run:
+          name: Configure git
+          command: |
+            git config --global user.email "$GIT_EMAIL"
+            git config --global user.name "$GIT_USERNAME"
+            git config --global -l
+
+      - run:
+          name: Deploy to Heroku
+          command: |
+            for dir in `\find * \( ! -path '*/.*' \) -maxdepth 0 -type d` ; do
+              APPNAME=`cat $dir/README.md | grep appname | sed -e "s/appname:\ *//" -e "s/ *$//"`
+              heroku git:remote --app $APPNAME --remote $dir
+              git subtree push --prefix $dir $dir master
+              grep -E "^\\$" $dir/README.md | sed -e "s/\\$\ //" | while read cmd
+              do
+                heroku run $cmd --app $APPNAME --remote $dir
+              done
+            done
 
 workflows:
   version: 2
